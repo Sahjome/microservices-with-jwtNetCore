@@ -4,12 +4,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using MicroServices_Jwt_1.Models;
 using MicroServices_Jwt_1.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace MicroServices_Jwt_1.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class StudentsController : ControllerBase
     {

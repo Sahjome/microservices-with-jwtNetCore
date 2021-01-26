@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using MicroServices_Jwt_1.Data;
 using MicroServices_Jwt_1.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -13,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MicroServices_Jwt_1
 {
@@ -31,6 +34,23 @@ namespace MicroServices_Jwt_1
             services.AddControllers();
             services.AddDbContext<StudentsDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("StudentsDB")));
             services.AddScoped<IStudent, StudentRepository>();
+            services.AddAuthentication(x =>
+            {
+                x.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                x.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            }).AddJwtBearer(x =>
+            {
+                x.SaveToken = true;
+                x.TokenValidationParameters = new TokenValidationParameters
+                {
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(
+                        Configuration.GetSection("JWTCons").GetSection("Secret").Value)),
+                    ValidateIssuer = true,
+                    ValidateAudience = true,
+                    ValidIssuer = "localhost",
+                    ValidAudience = "localhost"
+                };
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,6 +64,8 @@ namespace MicroServices_Jwt_1
             studentsDb.Database.EnsureCreated();
 
             app.UseHttpsRedirection();
+
+            app.UseAuthentication();
 
             app.UseRouting();
 
